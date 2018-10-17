@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"os"
+	"fmt"
 )
 
 type FileInfo struct {
@@ -27,9 +28,9 @@ func RetrieveFiles(root string) ([]FileInfo, error) {
 	return files, nil
 }
 
-func ArrangeInDateDirs(files []FileInfo, root string) {
+func ArrangeInDateDirs(files []FileInfo, root string, cleanupDirName string) {
 	for _, file := range files {
-		dateDir := strings.Join([]string { root, "cleanup", file.LastModified }, "/")
+		dateDir := strings.Join([]string { root, cleanupDirName, file.LastModified }, "/")
 
 		if _, err := os.Stat(dateDir); os.IsNotExist(err) {
 			os.MkdirAll(dateDir, 0755)
@@ -44,12 +45,23 @@ func ArrangeInDateDirs(files []FileInfo, root string) {
 }
 
 func main() {
-	root := "/Users/lukasz/Desktop"
+	if len(os.Args) == 1 {
+		fmt.Println("Must provide root directory.")
+		return
+	}
+
+	root := os.Args[1]
+	cleanupDir := "cleanup"
+
+	if len(os.Args) > 2 && os.Args[2] != "" {
+		cleanupDir = os.Args[2]
+	}
+
 	files, err := RetrieveFiles(root)
 	
 	if err != nil {
 			panic(err)
 	}
 
-	ArrangeInDateDirs(files, root)
+	ArrangeInDateDirs(files, root, cleanupDir)
 }
